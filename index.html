@@ -195,13 +195,14 @@ async function getPoster(movieName) {
             loadData();
         }
 
-        async function loadData() {
+        async function loadData()async function loadData() {
             const container = document.getElementById("listContainer");
             container.innerHTML = `<div class="text-center text-gray-500 text-sm py-8 animate-pulse">Sinema kulübü verileri yükleniyor...</div>`;
             
             if (currentTab === 'archive') {
                 let { data: entries, error } = await supabaseClient.from('entries').select('*').order('created_at', { ascending: false });
                 if (error) return console.error(error);
+                
                 let movies = {};
                 entries.forEach(entry => {
                     const mName = entry.movie_name.trim();
@@ -211,53 +212,67 @@ async function getPoster(movieName) {
                     movies[mName].reviews.push(entry);
                     movies[mName].totalRating += entry.rating;
                 });
+
                 let movieArray = Object.values(movies);
-                if (currentSort === 'highest') {
-                    movieArray.sort((a,b) => (b.totalRating/b.reviews.length) - (a.totalRating/a.reviews.length));
-                } else if (currentSort === 'lowest') {
-                    movieArray.sort((a,b) => (a.totalRating/a.reviews.length) - (b.totalRating/b.reviews.length));
-                } else {
-                    movieArray.sort((a,b) => new Date(b.latestDate) - new Date(a.latestDate));
-                }
+                if (currentSort === 'highest') movieArray.sort((a,b) => (b.totalRating/b.reviews.length) - (a.totalRating/a.reviews.length));
+                else if (currentSort === 'lowest') movieArray.sort((a,b) => (a.totalRating/a.reviews.length) - (b.totalRating/b.reviews.length));
+                else movieArray.sort((a,b) => new Date(b.latestDate) - new Date(a.latestDate));
+
                 if (movieArray.length === 0) {
-                    container.innerHTML = `<div class="text-center text-gray-500 text-sm py-8">Henüz kritik eklenmemiş. İlk kritiği yukarıdan gönderin!</div>`;
+                    container.innerHTML = `<div class="text-center text-gray-500 text-sm py-8">Henüz kritik eklenmemiş.</div>`;
                     return;
                 }
+
                 container.innerHTML = "";
                 for (let movie of movieArray) {
                     const avg = (movie.totalRating / movie.reviews.length).toFixed(1);
-                    const watcherCount = movie.reviews.length;
                     const cardId = `movie-${btoa(encodeURIComponent(movie.name)).replace(/=/g, '')}`;
-                    let cardHTML = `<div id="${cardId}" class="bg-[#111827] border border-gray-800 rounded-2xl p-5 flex flex-col md:flex-row gap-5 shadow-xl">
-                            <img id="img-${cardId}" src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=300" class="w-full md:w-32 h-48 md:h-auto object-cover rounded-xl bg-gray-800 flex-shrink-0">
-                            <div class="flex-1 flex flex-col justify-between">
-                                <div>
-                                    <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-                                        <h3 class="text-xl font-extrabold text-white tracking-wide">${movie.name}</h3>
-                                        <div class="flex items-center gap-3">
-                                            <span class="text-xs bg-amber-500/10 text-amber-400 font-bold border border-amber-500/20 px-2 py-1 rounded-lg flex items-center gap-1">👥 ${watcherCount} İzleyici</span>
-                                            <span class="text-sm bg-emerald-600 text-white font-black px-3 py-1 rounded-xl">⭐ ${avg}/10</span>
+                    
+                    container.innerHTML += `
+                        <div id="${cardId}" class="bg-[#111827] border border-gray-800 rounded-2xl p-5 flex flex-col md:flex-row gap-5 shadow-xl">
+                            <img id="img-${cardId}" src="https://via.placeholder.com/150x225?text=Film" class="w-full md:w-32 h-48 object-cover rounded-xl bg-gray-800">
+                            <div class="flex-1">
+                                <h3 class="text-xl font-extrabold text-white mb-2">${movie.name}</h3>
+                                <div class="space-y-3">${movie.reviews.map(rev => `
+                                    <div class="bg-[#192231]/40 border border-gray-800/40 rounded-xl p-3">
+                                        <div class="flex justify-between text-xs mb-1">
+                                            <span class="font-bold text-amber-400">${rev.username}</span>
+                                            <span class="font-black text-gray-300">⭐ ${rev.rating}</span>
                                         </div>
-                                    </div>
-                                    <p id="meta-${cardId}" class="text-xs text-gray-400 mb-4 font-semibold">Veriler yükleniyor...</p>
-                                    <div class="space-y-3 border-t border-gray-800/60 pt-3 max-h-60 overflow-y-auto pr-1">`;
-                    movie.reviews.forEach(rev => {
-                        const isBlured = rev.is_spoiler ? 'spoiler-text' : '';
-                        const spoilerAlert = rev.is_spoiler ? '<span class="text-[10px] bg-red-900/40 text-red-400 border border-red-800/30 px-1.5 py-0.5 rounded mr-1">SPOILER</span>' : '';
-                        cardHTML += `
-                            <div class="bg-[#192231]/40 border border-gray-800/40 rounded-xl p-3 flex gap-3 items-start">
-                                <img src="${rev.avatar_url}" class="w-7 h-7 rounded-full object-cover ring-1 ring-amber-500/30 flex-shrink-0">
-                                <div class="flex-1">
-                                    <div class="flex items-center justify-between mb-1">
-                                        <span class="text-xs font-bold text-amber-400">${rev.username}</span>
-                                        <span class="text-xs bg-gray-800 px-1.5 py-0.5 rounded font-black text-gray-300">⭐ ${rev.rating}</span>
-                                    </div>
-                                    <p class="text-sm text-gray-300 leading-relaxed ${isBlured}" onclick="this.classList.remove('spoiler-text')">${spoilerAlert}${rev.content}</p>
+                                        <p class="text-sm text-gray-300">${rev.content}</p>
+                                    </div>`).join('')}
                                 </div>
-                            </div>`;
-                    });
-                    cardHTML += `</div></div></div>`;
-                    container.innerHTML += cardHTML;
+                            </div>
+                        </div>`;
+                    
+                    getPoster(movie.name).then(url => { if(url) document.getElementById(`img-${cardId}`).src = url; });
+                }
+            } else {
+                let { data: watchlist, error } = await supabaseClient.from('watchlist').select('*').order('created_at', { ascending: false });
+                if (error) return console.error(error);
+                
+                container.innerHTML = `<div id="watch-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>`;
+                const grid = document.getElementById("watch-grid");
+                
+                if (watchlist.length === 0) {
+                    grid.innerHTML = `<div class="col-span-2 text-center text-gray-500 py-8">İzleme listeniz boş.</div>`;
+                    return;
+                }
+
+                watchlist.forEach(item => {
+                    const cardId = `watch-${item.id}`;
+                    grid.innerHTML += `
+                        <div id="${cardId}" class="bg-[#111827] border border-gray-800 rounded-xl p-4 flex gap-4 shadow-md">
+                            <img id="img-${cardId}" src="https://via.placeholder.com/100x150?text=Film" class="w-20 h-28 object-cover rounded-lg">
+                            <div>
+                                <h4 class="font-bold text-gray-200 capitalize">${item.movie_name}</h4>
+                                <button onclick="removeFromWatchlist(${item.id})" class="mt-2 text-xs text-red-400">Sil</button>
+                            </div>
+                        </div>`;
+                    getPoster(item.movie_name).then(url => { if(url) document.getElementById(`img-${cardId}`).src = url; });
+                });
+            }
+        }
                     // ... kartı listContainer'a ekledikten sonra (eski fetch'i sil ve bunu koy):
 const posterUrl = await getPoster(movie.name);
 if (posterUrl) {
