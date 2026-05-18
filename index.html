@@ -106,18 +106,12 @@
     <script>
         const SUPABASE_URL = "https://mazidhvusmbzekytbezl.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1hemlkaHZ1c21iemVreXRiZXpsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwOTg5NzUsImV4cCI6MjA5NDY3NDk3NX0.fyT0nUs8ynkTVef5WTHBprs50IeSP5tj6lKJfkEIYzM";
-        const OMDB_API_KEY = "388bb0fc";
-
+        const TMDB_API_KEY = "39c0daf339e613ea43ab33f7edc27e73";
         let supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentTab = 'archive';
         let currentSort = 'latest';
 
         document.addEventListener("DOMContentLoaded", () => {
-            checkProfile();
-            loadData();
-        });
-
-        function checkProfile() {
             const name = localStorage.getItem("sc_name");
             const avatar = localStorage.getItem("sc_avatar");
             if (!name || !avatar) {
@@ -128,7 +122,8 @@
                 document.getElementById("userBadge").classList.remove("hidden");
                 document.getElementById("userBadge").classList.add("flex");
             }
-        }
+            loadData();
+        });
 
         document.getElementById("profileForm").addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -143,7 +138,6 @@
                 localStorage.setItem("sc_name", name);
                 localStorage.setItem("sc_avatar", urlData.publicUrl);
                 document.getElementById("profileModal").classList.add("hidden");
-                checkProfile();
                 location.reload();
             }
         });
@@ -152,26 +146,21 @@
             localStorage.clear();
             location.reload();
         }
-const TMDB_API_KEY = "39c0daf339e613ea43ab33f7edc27e73";
 
-async function getPoster(movieName) {
-    try {
-        // TMDB'de film arama
-        const url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(movieName)}&language=tr-TR`;
-        const response = await fetch(url);
-        const data = await response.json();
-
-        // Eğer film bulunduysa ilk sonucu dön
-        if (data.results && data.results.length > 0 && data.results[0].poster_path) {
-            return `https://image.tmdb.org/t/p/w300${data.results[0].poster_path}`;
+        async function getPoster(movieName) {
+            try {
+                const url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(movieName)}&language=tr-TR`;
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.results && data.results.length > 0 && data.results[0].poster_path) {
+                    return `https://image.tmdb.org/t/p/w300${data.results[0].poster_path}`;
+                }
+                return null;
+            } catch (error) {
+                return null;
+            }
         }
-        return null; // Film bulunamadıysa null dön
-    } catch (error) {
-        console.error("Poster çekme hatası:", error);
-        return null;
-    }
-}
-        
+
         function switchTab(tab) {
             currentTab = tab;
             const archiveBtn = document.getElementById("tab-archive");
@@ -215,7 +204,7 @@ async function getPoster(movieName) {
 
                 let movieArray = Object.values(movies);
                 if (currentSort === 'highest') movieArray.sort((a,b) => (b.totalRating/b.reviews.length) - (a.totalRating/a.reviews.length));
-                else if (currentSort === 'lowest') movieArray.sort((a,b) => (a.totalRating/b.reviews.length) - (b.totalRating/b.reviews.length));
+                else if (currentSort === 'lowest') movieArray.sort((a,b) => (a.totalRating/a.reviews.length) - (b.totalRating/b.reviews.length));
                 else movieArray.sort((a,b) => new Date(b.latestDate) - new Date(a.latestDate));
 
                 if (movieArray.length === 0) {
@@ -237,7 +226,7 @@ async function getPoster(movieName) {
                                             <span class="font-bold text-amber-400">${rev.username}</span>
                                             <span class="font-black text-gray-300">⭐ ${rev.rating}</span>
                                         </div>
-                                        <p class="text-sm text-gray-300">${rev.content}</p>
+                                        <p class="${rev.is_spoiler ? 'spoiler-text' : ''}" onclick="this.classList.add('spoiler-unblurred')">${rev.content}</p>
                                     </div>`).join('')}
                                 </div>
                             </div>
@@ -287,46 +276,6 @@ async function getPoster(movieName) {
             const { error } = await supabaseClient.from('watchlist').insert([{ movie_name: name }]);
             if (error) alert("Listeye eklenemedi: " + error.message);
             else { document.getElementById("watchlistForm").reset(); loadData(); }
-        });
-
-        async function removeFromWatchlist(id) {
-            const { error } = await supabaseClient.from('watchlist').delete().eq('id', id);
-            if (error) alert("Silme başarısız: " + error.message);
-            else loadData();
-        }
-
-        function changeSort(sortType) {
-            currentSort = sortType;
-            ['latest', 'highest', 'lowest'].forEach(t => {
-                const btn = document.getElementById(`sort-${t}`);
-                if (btn) {
-                    btn.className = (t === sortType) ? "bg-amber-600 text-white text-xs font-semibold px-3 py-2 rounded-lg cursor-pointer" : "bg-[#1f2937] text-gray-300 text-xs font-semibold px-3 py-2 rounded-lg cursor-pointer";
-                }
-            });
-            loadData();
-        }
-        document.getElementById("movieForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const name = document.getElementById("movieName").value.trim().toLowerCase();
-            const rating = parseInt(document.getElementById("rating").value);
-            const content = document.getElementById("content").value.trim();
-            const isSpoiler = document.getElementById("isSpoiler").checked;
-            const uName = localStorage.getItem("sc_name");
-            const uAvatar = localStorage.getItem("sc_avatar");
-            const { error } = await supabaseClient.from('entries').insert([{ movie_name: name, rating: rating, content: content, username: uName, avatar_url: uAvatar, is_spoiler: isSpoiler }]);
-            if (error) alert("Kritik kaydedilemedi: " + error.message);
-            else { document.getElementById("movieForm").reset(); loadData(); }
-        });
-
-        document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const name = document.getElementById("watchlistMovieName").value.trim().toLowerCase();
-            const { error } = await supabaseClient.from('watchlist').insert([{ movie_name: name }]);
-            if (error) alert("Listeye eklenemedi: " + error.message);
-            else { 
-                document.getElementById("watchlistForm").reset(); 
-                loadData(); 
-            }
         });
 
         async function removeFromWatchlist(id) {
