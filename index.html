@@ -290,11 +290,14 @@ if (posterUrl) {
                     </div>`;
                 
                // Watchlist döngüsü içindeki fetch bloğunu sil ve şunu ekle:
-const posterUrl = await getPoster(item.movie_name);
-if (posterUrl) {
-    document.getElementById(`img-${cardId}`).src = posterUrl;
-}
-            });
+// Poster çekme işlemini başlat
+                    (async () => {
+                        const posterUrl = await getPoster(item.movie_name);
+                        if (posterUrl) {
+                            const imgElement = document.getElementById(`img-${cardId}`);
+                            if (imgElement) imgElement.src = posterUrl;
+                        }
+                    })();
                 container.innerHTML += `</div>`;
             }
         }
