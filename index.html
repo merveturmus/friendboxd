@@ -247,11 +247,31 @@
             }
         }
 
-        document.getElementById("movieForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            await supabaseClient.from('entries').insert([{ movie_name: document.getElementById("movieName").value.trim().toLowerCase(), rating: document.getElementById("rating").value, content: document.getElementById("content").value, username: localStorage.getItem("sc_name"), is_spoiler: document.getElementById("isSpoiler").checked }]);
-            document.getElementById("movieForm").reset();
-            loadData();
+
+document.getElementById("movieForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const lastPostTime = localStorage.getItem("last_post_time");
+    const currentTime = Date.now();
+
+    if (lastPostTime && (currentTime - lastPostTime < 15000)) {
+        alert("Yavaş ol şampiyon! 15 saniyede bir yorum yapabilirsin.");
+        return; // İşlemi burada kes
+    }
+
+    await supabaseClient.from('entries').insert([{ 
+        movie_name: document.getElementById("movieName").value.trim().toLowerCase(), 
+        rating: document.getElementById("rating").value, 
+        content: document.getElementById("content").value, 
+        username: localStorage.getItem("sc_name"), 
+        is_spoiler: document.getElementById("isSpoiler").checked 
+    }]);
+
+    localStorage.setItem("last_post_time", currentTime);
+    
+    document.getElementById("movieForm").reset();
+    loadData();
+});
         });
 
         document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
