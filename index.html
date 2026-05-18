@@ -215,7 +215,7 @@ async function getPoster(movieName) {
 
                 let movieArray = Object.values(movies);
                 if (currentSort === 'highest') movieArray.sort((a,b) => (b.totalRating/b.reviews.length) - (a.totalRating/a.reviews.length));
-                else if (currentSort === 'lowest') movieArray.sort((a,b) => (a.totalRating/a.reviews.length) - (b.totalRating/b.reviews.length));
+                else if (currentSort === 'lowest') movieArray.sort((a,b) => (a.totalRating/b.reviews.length) - (b.totalRating/b.reviews.length));
                 else movieArray.sort((a,b) => new Date(b.latestDate) - new Date(a.latestDate));
 
                 if (movieArray.length === 0) {
@@ -245,17 +245,16 @@ async function getPoster(movieName) {
                     getPoster(movie.name).then(url => { if(url) document.getElementById(`img-${cardId}`).src = url; });
                 }
             } else {
-                // Watchlist Kısmı (Sadece Posterli ve Minimal)
                 let { data: watchlist, error } = await supabaseClient.from('watchlist').select('*').order('created_at', { ascending: false });
                 if (error) return console.error(error);
                 
-                if (watchlist.length === 0) {
-                    container.innerHTML = `<div class="text-center text-gray-500 py-8">İzleme listeniz şu an boş.</div>`;
-                    return;
-                }
-
                 container.innerHTML = `<div id="watch-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>`;
                 const grid = document.getElementById("watch-grid");
+
+                if (watchlist.length === 0) {
+                    grid.innerHTML = `<div class="col-span-full text-center text-gray-500 py-8">İzleme listeniz boş.</div>`;
+                    return;
+                }
 
                 watchlist.forEach(item => {
                     const cardId = `watch-${item.id}`;
@@ -264,16 +263,47 @@ async function getPoster(movieName) {
                             <img id="img-${cardId}" src="https://via.placeholder.com/300x450?text=Film" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
                             <button onclick="removeFromWatchlist(${item.id})" class="absolute top-2 right-2 bg-black/60 hover:bg-red-900/80 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-xs">🗑️</button>
                         </div>`;
-                    
-                    (async () => {
-                        const posterUrl = await getPoster(item.movie_name);
-                        if (posterUrl) {
-                            const img = document.getElementById(`img-${cardId}`);
-                            if (img) img.src = posterUrl;
-                        }
-                    })();
+                    getPoster(item.movie_name).then(url => { if(url) document.getElementById(`img-${cardId}`).src = url; });
                 });
             }
+        }
+
+        document.getElementById("movieForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const name = document.getElementById("movieName").value.trim().toLowerCase();
+            const rating = parseInt(document.getElementById("rating").value);
+            const content = document.getElementById("content").value.trim();
+            const isSpoiler = document.getElementById("isSpoiler").checked;
+            const uName = localStorage.getItem("sc_name");
+            const uAvatar = localStorage.getItem("sc_avatar");
+            const { error } = await supabaseClient.from('entries').insert([{ movie_name: name, rating: rating, content: content, username: uName, avatar_url: uAvatar, is_spoiler: isSpoiler }]);
+            if (error) alert("Kritik kaydedilemedi: " + error.message);
+            else { document.getElementById("movieForm").reset(); loadData(); }
+        });
+
+        document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const name = document.getElementById("watchlistMovieName").value.trim().toLowerCase();
+            const { error } = await supabaseClient.from('watchlist').insert([{ movie_name: name }]);
+            if (error) alert("Listeye eklenemedi: " + error.message);
+            else { document.getElementById("watchlistForm").reset(); loadData(); }
+        });
+
+        async function removeFromWatchlist(id) {
+            const { error } = await supabaseClient.from('watchlist').delete().eq('id', id);
+            if (error) alert("Silme başarısız: " + error.message);
+            else loadData();
+        }
+
+        function changeSort(sortType) {
+            currentSort = sortType;
+            ['latest', 'highest', 'lowest'].forEach(t => {
+                const btn = document.getElementById(`sort-${t}`);
+                if (btn) {
+                    btn.className = (t === sortType) ? "bg-amber-600 text-white text-xs font-semibold px-3 py-2 rounded-lg cursor-pointer" : "bg-[#1f2937] text-gray-300 text-xs font-semibold px-3 py-2 rounded-lg cursor-pointer";
+                }
+            });
+            loadData();
         }
         document.getElementById("movieForm").addEventListener("submit", async (e) => {
             e.preventDefault();
