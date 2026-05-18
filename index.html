@@ -207,16 +207,13 @@
                 container.innerHTML = "";
                 for (let movie of movieArray) {
                     const cardId = `movie-${btoa(encodeURIComponent(movie.name)).replace(/=/g, '')}`;
-                    `
-    <div id="${cardId}" class="bg-[#111827] border border-gray-800 rounded-2xl p-5 flex flex-col md:flex-row gap-5 shadow-xl">
+                    `<div id="${cardId}" class="bg-[#111827] border border-gray-800 rounded-2xl p-5 flex flex-col md:flex-row gap-5 shadow-xl">
         <div class="w-full md:w-32 aspect-[2/3] flex-shrink-0">
             <img id="img-${cardId}" src="https://via.placeholder.com/150x225" class="w-full h-full object-cover rounded-xl bg-gray-800">
         </div>
         
         <div class="flex-1">
-            <div class="flex justify-between items-start">
-                <h3 class="text-xl font-extrabold text-white mb-2">${movie.name}</h3>
-                </div>
+            <h3 class="text-xl font-extrabold text-white mb-2">${movie.name}</h3>
             <div class="space-y-3">${movie.reviews.map(rev => `
                 <div class="bg-[#192231]/40 border border-gray-800/40 rounded-xl p-3">
                     <div class="flex justify-between text-xs mb-1">
