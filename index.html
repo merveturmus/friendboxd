@@ -274,7 +274,7 @@
 
         document.getElementById("movieForm").addEventListener("submit", async (e) => {
             e.preventDefault();
-            const name = document.getElementById("movieName").value.trim();
+            const name = document.getElementById("movieName").value.trim().toLowerCase();
             const rating = parseInt(document.getElementById("rating").value);
             const content = document.getElementById("content").value.trim();
             const isSpoiler = document.getElementById("isSpoiler").checked;
@@ -287,7 +287,18 @@
 
         document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
             e.preventDefault();
-            const name = document.getElementById("watchlistMovieName").value.trim();
+            document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    // toLowerCase() ekleyerek ismi standartlaştırdık
+    const name = document.getElementById("watchlistMovieName").value.trim().toLowerCase();
+    
+    const { error } = await supabaseClient.from('watchlist').insert([{ movie_name: name }]);
+    if (error) alert("Hata: " + error.message);
+    else { 
+        document.getElementById("watchlistForm").reset(); 
+        loadData(); 
+    }
+});
             const { error } = await supabaseClient.from('watchlist').insert([{ movie_name: name }]);
             if (error) alert("Listeye eklenemedi: " + error.message);
             else { document.getElementById("watchlistForm").reset(); loadData(); }
