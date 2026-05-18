@@ -152,7 +152,26 @@
             localStorage.clear();
             location.reload();
         }
+const TMDB_API_KEY = "BURAYA_KENDİ_KEYİNİZİ_YAZIN";
 
+async function getPoster(movieName) {
+    try {
+        // TMDB'de film arama
+        const url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(movieName)}&language=tr-TR`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        // Eğer film bulunduysa ilk sonucu dön
+        if (data.results && data.results.length > 0 && data.results[0].poster_path) {
+            return `https://image.tmdb.org/t/p/w300${data.results[0].poster_path}`;
+        }
+        return null; // Film bulunamadıysa null dön
+    } catch (error) {
+        console.error("Poster çekme hatası:", error);
+        return null;
+    }
+}
+        
         function switchTab(tab) {
             currentTab = tab;
             const archiveBtn = document.getElementById("tab-archive");
