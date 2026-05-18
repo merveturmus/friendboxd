@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HTML Document Template</title>
+  <style>
+    p {
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <p><!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friendboxd</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#0b0f19] text-[#f3f4f6] font-sans">
+    <div id="profileModal" class="flex flex-col items-center justify-center min-h-screen p-4">
+        <div class="bg-[#111827] border border-gray-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
+            <h3 class="text-xl font-bold text-amber-500 mb-2">&#10024; Kulübe Hoş Geldin!</h3>
+            <p class="text-gray-400 text-xs mb-6">Profilini bir defaya mahsus oluştur.</p>
+            <form id="profileForm" class="space-y-4">
+                <label class="block text-left text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">İsminiz</label>
+                <input type="text" id="profileName" required placeholder="Örn: Merve" class="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                <label class="block text-left text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Profil Fotoğrafı</label>
+                <button type="button" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 rounded-lg cursor-pointer transition">Dosya Seç</button>
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition">Profili Kaydet ve Giriş Yap</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html></p>
+  <script>
+    console.log(document.querySelector('p').textContent);
+  </script>
+</body>
+</html>
