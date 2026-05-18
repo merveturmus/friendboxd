@@ -312,15 +312,14 @@
             loadData();
         }
 
-        document.getElementById("searchBox").addEventListener("input", (e) => {
-            const text = e.target.value.toLowerCase().trim();
-            const cards = document.getElementById("listContainer").children;
-            for (let card of cards) {
-                if (card.id) {
-                    const title = card.querySelector("h3").innerText.toLowerCase();
-                    if (title.includes(text)) card.classList.remove("hidden");
-                    else card.classList.add("hidden");
-                }
+       document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const name = document.getElementById("watchlistMovieName").value.trim().toLowerCase();
+            const { error } = await supabaseClient.from('watchlist').insert([{ movie_name: name }]);
+            if (error) alert("Listeye eklenemedi: " + error.message);
+            else { 
+                document.getElementById("watchlistForm").reset(); 
+                loadData(); 
             }
         });
     </script>
