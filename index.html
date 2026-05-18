@@ -287,21 +287,15 @@
 
         document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
             e.preventDefault();
-            document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    // toLowerCase() ekleyerek ismi standartlaştırdık
-    const name = document.getElementById("watchlistMovieName").value.trim().toLowerCase();
-    
-    const { error } = await supabaseClient.from('watchlist').insert([{ movie_name: name }]);
-    if (error) alert("Hata: " + error.message);
-    else { 
-        document.getElementById("watchlistForm").reset(); 
-        loadData(); 
-    }
-});
+            const name = document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const name = document.getElementById("watchlistMovieName").value.trim().toLowerCase();
             const { error } = await supabaseClient.from('watchlist').insert([{ movie_name: name }]);
             if (error) alert("Listeye eklenemedi: " + error.message);
-            else { document.getElementById("watchlistForm").reset(); loadData(); }
+            else { 
+                document.getElementById("watchlistForm").reset(); 
+                loadData(); 
+            }
         });
 
         async function removeFromWatchlist(id) {
