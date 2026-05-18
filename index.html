@@ -265,13 +265,7 @@ if (posterUrl) {
 }
 // TMDB'de poster dışında detaylı bilgi için ayrı bir çağrı yapabilirsin 
 // ama şimdilik sadece posteri güncelledik.
-            } else {
-                let { data: watchlist, error } = await supabaseClient.from('watchlist').select('*').order('created_at', { ascending: false });
-                if (error) return console.error(error);
-                if (watchlist.length === 0) {
-                    container.innerHTML = `<div class="text-center text-gray-500 text-sm py-8">İzleme listeniz şu an boş.</div>`;
-                    return;
-                }
+            
                 container.innerHTML = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">`;
                 const grid = document.createElement("div");
             grid.className = "grid grid-cols-1 sm:grid-cols-2 gap-4";
