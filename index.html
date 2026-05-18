@@ -258,17 +258,13 @@ async function getPoster(movieName) {
                     });
                     cardHTML += `</div></div></div>`;
                     container.innerHTML += cardHTML;
-                    fetch(`https://www.omdbapi.com/?t=${encodeURIComponent(movie.name)}&apikey=${OMDB_API_KEY}`)
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.Response === "True") {
-                                if (data.Poster && data.Poster !== "N/A") document.getElementById(`img-${cardId}`).src = data.Poster;
-                                document.getElementById(`meta-${cardId}`).innerText = `📅 Vizyon: ${data.Released}  •  🎬 Tür: ${data.Genre}  •  🎥 Yönetmen: ${data.Director}`;
-                            } else {
-                                document.getElementById(`meta-${cardId}`).innerText = "Film detayları bulunamadı.";
-                            }
-                        });
-                }
+                    // ... kartı listContainer'a ekledikten sonra (eski fetch'i sil ve bunu koy):
+const posterUrl = await getPoster(movie.name);
+if (posterUrl) {
+    document.getElementById(`img-${cardId}`).src = posterUrl;
+}
+// TMDB'de poster dışında detaylı bilgi için ayrı bir çağrı yapabilirsin 
+// ama şimdilik sadece posteri güncelledik.
             } else {
                 let { data: watchlist, error } = await supabaseClient.from('watchlist').select('*').order('created_at', { ascending: false });
                 if (error) return console.error(error);
@@ -293,12 +289,11 @@ async function getPoster(movieName) {
                         </div>
                     </div>`;
                 
-                fetch(`https://www.omdbapi.com/?t=${encodeURIComponent(item.movie_name)}&apikey=${OMDB_API_KEY}`)
-                    .then(r => r.json()).then(d => { 
-                        if(d.Response === "True" && d.Poster && d.Poster !== "N/A") {
-                            document.getElementById(`img-${cardId}`).src = d.Poster; 
-                        }
-                    });
+               // Watchlist döngüsü içindeki fetch bloğunu sil ve şunu ekle:
+const posterUrl = await getPoster(item.movie_name);
+if (posterUrl) {
+    document.getElementById(`img-${cardId}`).src = posterUrl;
+}
             });
                 container.innerHTML += `</div>`;
             }
