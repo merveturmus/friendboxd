@@ -285,9 +285,7 @@
             else { document.getElementById("movieForm").reset(); loadData(); }
         });
 
-        document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const name = document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
+       document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
             e.preventDefault();
             const name = document.getElementById("watchlistMovieName").value.trim().toLowerCase();
             const { error } = await supabaseClient.from('watchlist').insert([{ movie_name: name }]);
