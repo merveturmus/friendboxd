@@ -272,6 +272,7 @@
             }
         }
 
+      // 1. Kritik Ekleme Formu
         document.getElementById("movieForm").addEventListener("submit", async (e) => {
             e.preventDefault();
             const name = document.getElementById("movieName").value.trim().toLowerCase();
@@ -285,7 +286,8 @@
             else { document.getElementById("movieForm").reset(); loadData(); }
         });
 
-       document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
+        // 2. Watchlist Ekleme Formu (Tek tanımlama)
+        document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
             e.preventDefault();
             const name = document.getElementById("watchlistMovieName").value.trim().toLowerCase();
             const { error } = await supabaseClient.from('watchlist').insert([{ movie_name: name }]);
@@ -296,32 +298,25 @@
             }
         });
 
+        // 3. Watchlist'ten Silme Fonksiyonu
         async function removeFromWatchlist(id) {
             const { error } = await supabaseClient.from('watchlist').delete().eq('id', id);
             if (error) alert("Silme başarısız: " + error.message);
             else loadData();
         }
 
+        // 4. Sıralama Fonksiyonu
         function changeSort(sortType) {
             currentSort = sortType;
             ['latest', 'highest', 'lowest'].forEach(t => {
                 const btn = document.getElementById(`sort-${t}`);
-                if (t === sortType) btn.className = "bg-amber-600 text-white text-xs font-semibold px-3 py-2 rounded-lg cursor-pointer";
-                else btn.className = "bg-[#1f2937] text-gray-300 text-xs font-semibold px-3 py-2 rounded-lg cursor-pointer";
+                if (btn) {
+                    if (t === sortType) btn.className = "bg-amber-600 text-white text-xs font-semibold px-3 py-2 rounded-lg cursor-pointer";
+                    else btn.className = "bg-[#1f2937] text-gray-300 text-xs font-semibold px-3 py-2 rounded-lg cursor-pointer";
+                }
             });
             loadData();
         }
-
-       document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const name = document.getElementById("watchlistMovieName").value.trim().toLowerCase();
-            const { error } = await supabaseClient.from('watchlist').insert([{ movie_name: name }]);
-            if (error) alert("Listeye eklenemedi: " + error.message);
-            else { 
-                document.getElementById("watchlistForm").reset(); 
-                loadData(); 
-            }
-        });
     </script>
 </body>
 </html>
