@@ -174,11 +174,18 @@
                 alert("Yavaş ol şampiyon! 15 saniyede bir yorum yapabilirsin.");
                 return;
             }
-            
+            const movieData =
+    await getMovieData(
+        document
+            .getElementById("movieName")
+            .value
+            .trim()
+    );
             const { error } = await supabaseClient
             .from('entries')
             .insert([{ 
                 movie_name: document.getElementById("movieName").value.trim(), 
+                tmdb_id: movieData?.id || null,
                 rating: document.getElementById("rating").value, 
                 content: document.getElementById("content").value, 
                 username: localStorage.getItem("sc_name"), 
@@ -214,6 +221,8 @@
                 .value
                 .trim();
 
+            const movieData =
+              await getMovieData(movieName);
             const { data: existing } = await supabaseClient
                 .from('watchlist')
                 .select('*')
@@ -228,6 +237,7 @@
                 .from('watchlist')
                 .insert([{
     movie_name: movieName,
+    tmdb_id: movieData?.id || null,                
     user_id: localStorage.getItem("sc_user_id"),
     username: localStorage.getItem("sc_name")
 }]);
@@ -245,6 +255,37 @@
             location.reload();
         }
 
+        async function getMovieData(movieName) {
+
+    try {
+
+        const url =
+            `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(movieName)}&language=tr-TR`;
+
+        const response = await fetch(url);
+
+        const data = await response.json();
+
+        if (
+            data.results &&
+            data.results.length > 0
+        ) {
+
+            return {
+                id: data.results[0].id,
+                title: data.results[0].title,
+                original_title:
+                    data.results[0].original_title
+            };
+        }
+
+        return null;
+
+    } catch (error) {
+
+        return null;
+    }
+}       
         async function getPoster(movieName) {
 
             if (posterCache[movieName]) {
@@ -313,10 +354,12 @@
                 let movies = {};
                 entries.forEach(entry => {
                     const mName = entry.movie_name.trim();
-                    const mKey = mName
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, ' ');
+                    const mKey =
+    entry.tmdb_id ||
+    mName
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, ' ');
                     if (!movies[mKey]) movies[mKey] = { name: mName, reviews: [], totalRating: 0, latestDate: entry.created_at };
                     movies[mKey].reviews.push(entry);
                     movies[mKey].totalRating += Number(entry.rating);
