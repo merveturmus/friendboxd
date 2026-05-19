@@ -191,6 +191,16 @@
                 return;
             }
             
+           await supabaseClient
+    .from('watchlist')
+    .delete()
+    .ilike(
+        'movie_name',
+        document
+            .getElementById("movieName")
+            .value
+            .trim()
+    );
             localStorage.setItem("last_post_time", currentTime);
             document.getElementById("movieForm").reset();
             loadData();
@@ -216,8 +226,11 @@
 
             const { error } = await supabaseClient
                 .from('watchlist')
-                .insert([{ movie_name: movieName }]);
-
+                .insert([{
+    movie_name: movieName,
+    user_id: localStorage.getItem("sc_user_id"),
+    username: localStorage.getItem("sc_name")
+}]);
             if (error) {
                 alert("Film eklenemedi.");
                 return;
@@ -340,7 +353,13 @@
                                     <div class="flex gap-2 items-center">
 
                                       <span class="font-bold text-amber-400">
-                                       ${escapeHTML(rev.username)}
+                                       <button
+                                         onclick="showProfile('${rev.user_id}')"
+                                         class="font-bold text-amber-400 hover:underline cursor-pointer">
+
+                                         ${escapeHTML(rev.username)}
+
+                                       </button>
                                       </span>
 
                                       <span class="font-black text-gray-300">
@@ -394,6 +413,11 @@ ${escapeHTML(rev.content)}
                     grid.innerHTML += `
                         <div class="relative group aspect-[2/3] rounded-lg overflow-hidden border border-gray-800 bg-gray-900">
                             <img id="img-${cardId}" src="https://via.placeholder.com/300x450" class="w-full h-full object-cover">
+                            <div class="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs px-2 py-1">
+
+                              ${escapeHTML(item.username || "Anonim")}
+
+                            </div>
                             <button onclick="removeFromWatchlist(${item.id})" class="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full text-xs">🗑️</button>
                         </div>`;
                     getPoster(item.movie_name).then(url => { if(url) document.getElementById(`img-${cardId}`).src = url; });
@@ -476,6 +500,46 @@ ${escapeHTML(rev.content)}
     }
 
     loadData();
+
+    } 
+        async function showProfile(userId) {
+
+    const { data: entries } = await supabaseClient
+        .from('entries')
+        .select('*')
+        .eq('user_id', userId);
+
+    if (!entries || entries.length === 0) return;
+
+    const username = entries[0].username;
+
+    const totalReviews = entries.length;
+
+    const averageRating =
+        (
+            entries.reduce(
+                (sum, e) => sum + Number(e.rating),
+                0
+            ) / totalReviews
+        ).toFixed(1);
+
+    const topMovies = entries
+        .sort((a, b) => b.rating - a.rating)
+        .slice(0, 3)
+        .map(e => `• ${e.movie_name} (${e.rating})`)
+        .join('\n');
+
+    alert(
+`${username}
+
+🎬 Toplam yorum: ${totalReviews}
+
+⭐ Ortalama puan: ${averageRating}
+
+🏆 En yüksek puan verdikleri:
+
+${topMovies}`
+    );
 }
     </script>
 </body>
