@@ -183,7 +183,7 @@
             loadData();
         }
 
-        async function loadData() async function loadData() {
+       async function loadData() {
             const container = document.getElementById("listContainer");
             container.innerHTML = `<div class="text-center text-gray-500 text-sm py-8 animate-pulse">Yükleniyor...</div>`;
             
@@ -193,11 +193,11 @@
                 
                 let movies = {};
                 entries.forEach(entry => {
-                    // İsimleri tutarlı hale getirmek için trim ve lowercase kullanıyoruz
-                    const mName = entry.movie_name.trim().toLowerCase();
-                    if (!movies[mName]) movies[mName] = { name: entry.movie_name, reviews: [], totalRating: 0, latestDate: entry.created_at };
-                    movies[mName].reviews.push(entry);
-                    movies[mName].totalRating += entry.rating;
+                    const mName = entry.movie_name.trim();
+                    const mKey = mName.toLowerCase();
+                    if (!movies[mKey]) movies[mKey] = { name: mName, reviews: [], totalRating: 0, latestDate: entry.created_at };
+                    movies[mKey].reviews.push(entry);
+                    movies[mKey].totalRating += Number(entry.rating);
                 });
 
                 let movieArray = Object.values(movies);
@@ -216,7 +216,7 @@
                         <div class="flex-1 w-full">
                             <div class="flex justify-between items-center mb-2">
                                 <h3 class="text-xl font-extrabold text-white">${movie.name}</h3>
-                                <span class="text-xs font-bold bg-amber-600/20 text-amber-500 px-3 py-1 rounded-full">👁️ ${movie.reviews.length} İzleyici</span>
+                                <span class="text-xs font-bold bg-amber-600/20 text-amber-500 px-3 py-1 rounded-full">👁️ ${movie.reviews.length}</span>
                             </div>
                             <div class="space-y-3">${movie.reviews.map(rev => `
                                 <div class="bg-[#192231]/40 border border-gray-800/40 rounded-xl p-3">
@@ -246,8 +246,6 @@
                 });
             }
         }
-        document.getElementById("movieForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
             const lastPostTime = localStorage.getItem("last_post_time");
             const currentTime = Date.now();
             if (lastPostTime && (currentTime - lastPostTime < 15000)) {
