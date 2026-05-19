@@ -142,6 +142,36 @@
             }
         });
 
+        // FİLM GÖNDERME İŞLEMİ DÜZELTİLDİ
+        document.getElementById("movieForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const lastPostTime = localStorage.getItem("last_post_time");
+            const currentTime = Date.now();
+            if (lastPostTime && (currentTime - lastPostTime < 15000)) {
+                alert("Yavaş ol şampiyon! 15 saniyede bir yorum yapabilirsin.");
+                return;
+            }
+            
+            await supabaseClient.from('entries').insert([{ 
+                movie_name: document.getElementById("movieName").value.trim(), 
+                rating: document.getElementById("rating").value, 
+                content: document.getElementById("content").value, 
+                username: localStorage.getItem("sc_name"), 
+                is_spoiler: document.getElementById("isSpoiler").checked 
+            }]);
+            
+            localStorage.setItem("last_post_time", currentTime);
+            document.getElementById("movieForm").reset();
+            loadData();
+        });
+
+        document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            await supabaseClient.from('watchlist').insert([{ movie_name: document.getElementById("watchlistMovieName").value.trim() }]);
+            document.getElementById("watchlistForm").reset();
+            loadData();
+        });
+
         function clearProfile() {
             localStorage.clear();
             location.reload();
@@ -183,7 +213,7 @@
             loadData();
         }
 
-       async function loadData() {
+        async function loadData() {
             const container = document.getElementById("listContainer");
             container.innerHTML = `<div class="text-center text-gray-500 text-sm py-8 animate-pulse">Yükleniyor...</div>`;
             
@@ -191,6 +221,7 @@
                 let { data: entries, error } = await supabaseClient.from('entries').select('*').order('created_at', { ascending: false });
                 if (error) return;
                 
+                // Gruplama mantığı: İsimleri küçük harfe çevirip anahtar olarak kullan
                 let movies = {};
                 entries.forEach(entry => {
                     const mName = entry.movie_name.trim();
@@ -216,7 +247,7 @@
                         <div class="flex-1 w-full">
                             <div class="flex justify-between items-center mb-2">
                                 <h3 class="text-xl font-extrabold text-white">${movie.name}</h3>
-                                <span class="text-xs font-bold bg-amber-600/20 text-amber-500 px-3 py-1 rounded-full">👁️ ${movie.reviews.length}</span>
+                                <span class="text-xs font-bold bg-amber-600/20 text-amber-500 px-3 py-1 rounded-full">👁️ ${movie.reviews.length} izleyici</span>
                             </div>
                             <div class="space-y-3">${movie.reviews.map(rev => `
                                 <div class="bg-[#192231]/40 border border-gray-800/40 rounded-xl p-3">
@@ -246,30 +277,6 @@
                 });
             }
         }
-            const lastPostTime = localStorage.getItem("last_post_time");
-            const currentTime = Date.now();
-            if (lastPostTime && (currentTime - lastPostTime < 15000)) {
-                alert("Yavaş ol şampiyon! 15 saniyede bir yorum yapabilirsin.");
-                return;
-            }
-            await supabaseClient.from('entries').insert([{ 
-                movie_name: document.getElementById("movieName").value.trim().toLowerCase(), 
-                rating: document.getElementById("rating").value, 
-                content: document.getElementById("content").value, 
-                username: localStorage.getItem("sc_name"), 
-                is_spoiler: document.getElementById("isSpoiler").checked 
-            }]);
-            localStorage.setItem("last_post_time", currentTime);
-            document.getElementById("movieForm").reset();
-            loadData();
-        });
-
-        document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
-            await supabaseClient.from('watchlist').insert([{ movie_name: document.getElementById("watchlistMovieName").value.trim().toLowerCase() }]);
-            document.getElementById("watchlistForm").reset();
-            loadData();
-        });
 
         async function removeFromWatchlist(id) {
             await supabaseClient.from('watchlist').delete().eq('id', id);
