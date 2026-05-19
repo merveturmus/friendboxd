@@ -110,6 +110,16 @@
         let supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let currentTab = 'archive';
         let currentSort = 'latest';
+        const posterCache = {};
+
+        function escapeHTML(str) {
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
 
         document.addEventListener("DOMContentLoaded", () => {
             const name = localStorage.getItem("sc_name");
@@ -122,6 +132,7 @@
                 document.getElementById("userBadge").classList.remove("hidden");
                 document.getElementById("userBadge").classList.add("flex");
             }
+            document.getElementById("searchBox").addEventListener("input", loadData);
             loadData();
         });
 
@@ -152,13 +163,20 @@
                 return;
             }
             
-            await supabaseClient.from('entries').insert([{ 
+            const { error } = await supabaseClient
+            .from('entries')
+            .insert([{ 
                 movie_name: document.getElementById("movieName").value.trim(), 
                 rating: document.getElementById("rating").value, 
                 content: document.getElementById("content").value, 
                 username: localStorage.getItem("sc_name"), 
                 is_spoiler: document.getElementById("isSpoiler").checked 
             }]);
+
+            if (error) {
+                alert("Yorum gönderilemedi: " + error.message);
+                return;
+            }
             
             localStorage.setItem("last_post_time", currentTime);
             document.getElementById("movieForm").reset();
@@ -167,7 +185,31 @@
 
         document.getElementById("watchlistForm").addEventListener("submit", async (e) => {
             e.preventDefault();
-            await supabaseClient.from('watchlist').insert([{ movie_name: document.getElementById("watchlistMovieName").value.trim() }]);
+
+            const movieName = document
+                .getElementById("watchlistMovieName")
+                .value
+                .trim();
+
+            const { data: existing } = await supabaseClient
+                .from('watchlist')
+                .select('*')
+                .ilike('movie_name', movieName);
+
+            if (existing.length > 0) {
+                alert("Bu film zaten watchlistte.");
+                return;
+            }
+
+            const { error } = await supabaseClient
+                .from('watchlist')
+                .insert([{ movie_name: movieName }]);
+
+            if (error) {
+                alert("Film eklenemedi.");
+                return;
+            }
+
             document.getElementById("watchlistForm").reset();
             loadData();
         });
@@ -178,15 +220,35 @@
         }
 
         async function getPoster(movieName) {
+
+            if (posterCache[movieName]) {
+                return posterCache[movieName];
+            }
+
             try {
                 const url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(movieName)}&language=tr-TR`;
+
                 const response = await fetch(url);
                 const data = await response.json();
-                if (data.results && data.results.length > 0 && data.results[0].poster_path) {
-                    return `https://image.tmdb.org/t/p/w300${data.results[0].poster_path}`;
+
+                if (
+                    data.results &&
+                    data.results.length > 0 &&
+                    data.results[0].poster_path
+                ) {
+                    const posterUrl =
+                        `https://image.tmdb.org/t/p/w300${data.results[0].poster_path}`;
+
+                    posterCache[movieName] = posterUrl;
+
+                    return posterUrl;
                 }
+
                 return null;
-            } catch (error) { return null; }
+
+            } catch (error) {
+                return null;
+            }
         }
 
         function switchTab(tab) {
@@ -232,6 +294,12 @@
                 });
 
                 let movieArray = Object.values(movies);
+
+                const query = document.getElementById("searchBox").value.toLowerCase();
+
+                movieArray = movieArray.filter(movie =>
+                    movie.name.toLowerCase().includes(query)
+                );
                 if (currentSort === 'highest') movieArray.sort((a,b) => (b.totalRating/b.reviews.length) - (a.totalRating/a.reviews.length));
                 else if (currentSort === 'lowest') movieArray.sort((a,b) => (a.totalRating/a.reviews.length) - (b.totalRating/b.reviews.length));
                 else movieArray.sort((a,b) => new Date(b.latestDate) - new Date(a.latestDate));
@@ -255,7 +323,11 @@
                                         <span class="font-bold text-amber-400">${rev.username}</span>
                                         <span class="font-black text-gray-300">⭐ ${rev.rating}</span>
                                     </div>
-                                    <p class="${rev.is_spoiler ? 'spoiler-text' : ''}" onclick="this.classList.add('spoiler-unblurred')">${rev.content}</p>
+                                    <p 
+class="${rev.is_spoiler ? 'spoiler-text' : ''}" 
+onclick="this.classList.toggle('spoiler-unblurred')">
+${escapeHTML(rev.content)}
+</p>
                                 </div>`).join('')}
                             </div>
                         </div>
@@ -285,6 +357,21 @@
 
         function changeSort(sortType) {
             currentSort = sortType;
+
+            const buttons = ['latest', 'highest', 'lowest'];
+
+            buttons.forEach(type => {
+                const btn = document.getElementById(`sort-${type}`);
+
+                if (type === sortType) {
+                    btn.classList.remove("bg-[#1f2937]", "text-gray-300");
+                    btn.classList.add("bg-amber-600", "text-white");
+                } else {
+                    btn.classList.remove("bg-amber-600", "text-white");
+                    btn.classList.add("bg-[#1f2937]", "text-gray-300");
+                }
+            });
+
             loadData();
         }
     </script>
