@@ -122,6 +122,18 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
+             let userId = localStorage.getItem("sc_user_id");
+
+             if (!userId) {
+
+             userId = crypto.randomUUID();
+
+    localStorage.setItem(
+        "sc_user_id",
+        userId
+    );
+}
+            
             const name = localStorage.getItem("sc_name");
             const avatar = localStorage.getItem("sc_avatar");
             if (!name || !avatar) {
@@ -170,6 +182,7 @@
                 rating: document.getElementById("rating").value, 
                 content: document.getElementById("content").value, 
                 username: localStorage.getItem("sc_name"), 
+                user_id: localStorage.getItem("sc_user_id"),
                 is_spoiler: document.getElementById("isSpoiler").checked 
             }]);
 
