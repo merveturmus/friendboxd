@@ -287,7 +287,10 @@
                 let movies = {};
                 entries.forEach(entry => {
                     const mName = entry.movie_name.trim();
-                    const mKey = mName.toLowerCase();
+                    const mKey = mName
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
                     if (!movies[mKey]) movies[mKey] = { name: mName, reviews: [], totalRating: 0, latestDate: entry.created_at };
                     movies[mKey].reviews.push(entry);
                     movies[mKey].totalRating += Number(entry.rating);
