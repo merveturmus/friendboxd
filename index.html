@@ -335,10 +335,45 @@
                             </div>
                             <div class="space-y-3">${movie.reviews.map(rev => `
                                 <div class="bg-[#192231]/40 border border-gray-800/40 rounded-xl p-3">
-                                    <div class="flex justify-between text-xs mb-1">
-                                        <span class="font-bold text-amber-400">${rev.username}</span>
-                                        <span class="font-black text-gray-300">⭐ ${rev.rating}</span>
-                                    </div>
+                                   <div class="flex justify-between items-center text-xs mb-1">
+
+                                    <div class="flex gap-2 items-center">
+
+                                      <span class="font-bold text-amber-400">
+                                       ${escapeHTML(rev.username)}
+                                      </span>
+
+                                      <span class="font-black text-gray-300">
+                                       ⭐ ${rev.rating}
+                                      </span>
+
+                                   </div>
+
+                                   ${rev.user_id === localStorage.getItem("sc_user_id") ? `
+
+                                     <div class="flex gap-2">
+
+    <button
+    onclick="editEntry(${rev.id}, \`${rev.content.replace(/`/g, "\\`")}\`)"
+    class="text-blue-400 hover:text-blue-300 text-xs cursor-pointer">
+
+        ✏️
+
+    </button>
+
+    <button
+    onclick="deleteEntry(${rev.id})"
+    class="text-red-400 hover:text-red-300 text-xs cursor-pointer">
+
+        🗑️
+
+    </button>
+
+</div>
+
+                                  ` : ""}
+
+                                  </div>
                                     <p 
 class="${rev.is_spoiler ? 'spoiler-text' : ''}" 
 onclick="this.classList.toggle('spoiler-unblurred')">
@@ -390,6 +425,58 @@ ${escapeHTML(rev.content)}
 
             loadData();
         }
+        async function deleteEntry(id) {
+
+        const confirmed = confirm(
+        "Bu yorumu silmek istediğine emin misin?"
+    );
+
+        if (!confirmed) return;
+
+        const { error } = await supabaseClient
+        .from('entries')
+        .delete()
+        .eq('id', id);
+
+        if (error) {
+
+        alert("Yorum silinemedi.");
+
+        return;
+    }
+
+    loadData();
+}
+        async function editEntry(id, currentContent) {
+
+    const newContent = prompt(
+        "Yorumunu düzenle:",
+        currentContent
+    );
+
+    if (
+        !newContent ||
+        newContent.trim() === ""
+    ) return;
+
+    const { error } = await supabaseClient
+        .from('entries')
+        .update({
+            content: newContent
+        })
+        .eq('id', id);
+
+    if (error) {
+
+        alert(
+            "Yorum güncellenemedi."
+        );
+
+        return;
+    }
+
+    loadData();
+}
     </script>
 </body>
 </html>
