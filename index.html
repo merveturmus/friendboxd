@@ -100,6 +100,11 @@
         <section>
             <div id="listContainer" class="space-y-6"></div>
         </section>
+        <section
+            id="profilePage"
+            class="hidden">
+
+            </section>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -580,6 +585,199 @@ ${escapeHTML(rev.content)}
     } 
         async function showProfile(userId) {
 
+    const profilePage =
+        document.getElementById(
+            "profilePage"
+        );
+
+    const listContainer =
+        document.getElementById(
+            "listContainer"
+        );
+
+    const { data: entries } =
+        await supabaseClient
+        .from('entries')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', {
+            ascending: false
+        });
+
+    if (!entries || entries.length === 0)
+        return;
+
+    const {
+        data: watchlist
+    } = await supabaseClient
+        .from('watchlist')
+        .select('*')
+        .eq('user_id', userId);
+
+    const username =
+        entries[0].username;
+
+    const totalReviews =
+        entries.length;
+
+    const averageRating =
+        (
+            entries.reduce(
+                (sum, e) =>
+                    sum + Number(e.rating),
+                0
+            ) / totalReviews
+        ).toFixed(1);
+
+    const topMovies =
+        entries
+        .sort((a, b) =>
+            b.rating - a.rating
+        )
+        .slice(0, 3);
+
+    listContainer.classList.add(
+        "hidden"
+    );
+
+    profilePage.classList.remove(
+        "hidden"
+    );
+
+    profilePage.innerHTML = `
+
+<div class="bg-[#111827]
+border border-gray-800
+rounded-2xl p-6">
+
+<button
+onclick="closeProfile()"
+class="mb-6 text-sm text-amber-400 hover:underline cursor-pointer">
+
+← Geri Dön
+
+</button>
+
+<div class="flex items-center gap-4 mb-6">
+
+<div class="w-20 h-20 rounded-full bg-gray-800"></div>
+
+<div>
+
+<h2 class="text-3xl font-black text-white">
+
+${escapeHTML(username)}
+
+</h2>
+
+<p class="text-gray-400">
+
+🎬 ${totalReviews} yorum
+
+</p>
+
+<p class="text-gray-400">
+
+⭐ Ortalama:
+${averageRating}
+
+</p>
+
+</div>
+
+</div>
+
+<div class="mb-8">
+
+<h3 class="text-lg font-bold text-amber-500 mb-3">
+
+🏆 En Sevdiği Filmler
+
+</h3>
+
+<div class="space-y-2">
+
+${topMovies.map(movie => `
+
+<div class="bg-[#1f2937]
+rounded-xl p-3">
+
+${escapeHTML(movie.movie_name)}
+⭐ ${movie.rating}
+
+</div>
+
+`).join('')}
+
+</div>
+
+</div>
+
+<div class="mb-8">
+
+<h3 class="text-lg font-bold text-amber-500 mb-3">
+
+⏳ Watchlist
+
+</h3>
+
+<div class="space-y-2">
+
+${watchlist.map(movie => `
+
+<div class="bg-[#1f2937]
+rounded-xl p-3">
+
+${escapeHTML(movie.movie_name)}
+
+</div>
+
+`).join('')}
+
+</div>
+
+</div>
+
+<div>
+
+<h3 class="text-lg font-bold text-amber-500 mb-3">
+
+📝 Tüm Yorumları
+
+</h3>
+
+<div class="space-y-3">
+
+${entries.map(entry => `
+
+<div class="bg-[#1f2937]
+rounded-xl p-4">
+
+<div class="font-bold mb-2">
+
+${escapeHTML(entry.movie_name)}
+⭐ ${entry.rating}
+
+</div>
+
+<div class="text-gray-300">
+
+${escapeHTML(entry.content)}
+
+</div>
+
+</div>
+
+`).join('')}
+
+</div>
+
+</div>
+
+</div>
+`;
+}
+
     const { data: entries } = await supabaseClient
         .from('entries')
         .select('*')
@@ -616,6 +814,20 @@ ${escapeHTML(rev.content)}
 
 ${topMovies}`
     );
+}
+function closeProfile() {
+
+    document
+        .getElementById(
+            "profilePage"
+        )
+        .classList.add("hidden");
+
+    document
+        .getElementById(
+            "listContainer"
+        )
+        .classList.remove("hidden");
 }
     </script>
 </body>
