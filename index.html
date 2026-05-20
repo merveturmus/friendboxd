@@ -420,7 +420,7 @@ avatar_url:
                                      <div class="flex gap-2 items-center">
 
 <img
-src="${rev.avatar_url || 'https://via.placeholder.com/40'}"
+src="${rev.avatar_url || 'https://ui-avatars.com/api/?name=User&background=111827&color=fff'}"
 class="w-6 h-6 rounded-full object-cover border border-gray-700">
 
 <div>
@@ -435,13 +435,7 @@ class="font-bold text-amber-400 hover:underline cursor-pointer">
 
 </div>
 
-                                     <button
-                                       onclick="showProfile('${rev.user_id}')"
-                                       class="font-bold text-amber-400 hover:underline cursor-pointer">
-
-                                       ${escapeHTML(rev.username)}
-
-                                     </button>
+                                    
 
                                       <span class="font-black text-gray-300">
                                        ⭐ ${rev.rating}
@@ -681,7 +675,7 @@ class="mb-6 text-sm text-amber-400 hover:underline cursor-pointer">
 <div class="flex items-center gap-4 mb-6">
 
 <img
-src="${entries[0].avatar_url || 'https://via.placeholder.com/150'}"
+src="${entries[0].avatar_url || 'https://ui-avatars.com/api/?name=User&background=111827&color=fff'}"
 class="w-20 h-20 rounded-full object-cover border-2 border-amber-500">
 
 <div>
