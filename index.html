@@ -253,10 +253,7 @@
     username:
         localStorage.getItem("sc_name")
 }]);
-    tmdb_id: movieData?.id || null,                
-    user_id: localStorage.getItem("sc_user_id"),
-    username: localStorage.getItem("sc_name")
-}]);
+    
             if (error) {
                 alert("Film eklenemedi.");
                 return;
@@ -291,7 +288,7 @@
                 id: data.results[0].id,
                 title: data.results[0].title,
                 original_title:
-                    data.results[0].original_title
+                    data.results[0].original_title,
                 release_date:
                     data.results[0].release_date
             };
