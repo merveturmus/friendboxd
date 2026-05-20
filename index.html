@@ -417,7 +417,23 @@ avatar_url:
                                 <div class="bg-[#192231]/40 border border-gray-800/40 rounded-xl p-3">
                                    <div class="flex justify-between items-center text-xs mb-1">
 
-                                    <div class="flex gap-2 items-center">
+                                     <div class="flex gap-2 items-center">
+
+<img
+src="${rev.avatar_url || 'https://via.placeholder.com/40'}"
+class="w-6 h-6 rounded-full object-cover border border-gray-700">
+
+<div>
+
+<button
+onclick="showProfile('${rev.user_id}')"
+class="font-bold text-amber-400 hover:underline cursor-pointer">
+
+    ${escapeHTML(rev.username)}
+
+</button>
+
+</div>
 
                                      <button
                                        onclick="showProfile('${rev.user_id}')"
@@ -664,7 +680,9 @@ class="mb-6 text-sm text-amber-400 hover:underline cursor-pointer">
 
 <div class="flex items-center gap-4 mb-6">
 
-<div class="w-20 h-20 rounded-full bg-gray-800"></div>
+<img
+src="${entries[0].avatar_url || 'https://via.placeholder.com/150'}"
+class="w-20 h-20 rounded-full object-cover border-2 border-amber-500">
 
 <div>
 
