@@ -778,43 +778,7 @@ ${escapeHTML(entry.content)}
 `;
 }
 
-    const { data: entries } = await supabaseClient
-        .from('entries')
-        .select('*')
-        .eq('user_id', userId);
-
-    if (!entries || entries.length === 0) return;
-
-    const username = entries[0].username;
-
-    const totalReviews = entries.length;
-
-    const averageRating =
-        (
-            entries.reduce(
-                (sum, e) => sum + Number(e.rating),
-                0
-            ) / totalReviews
-        ).toFixed(1);
-
-    const topMovies = entries
-        .sort((a, b) => b.rating - a.rating)
-        .slice(0, 3)
-        .map(e => `• ${e.movie_name} (${e.rating})`)
-        .join('\n');
-
-    alert(
-`${username}
-
-🎬 Toplam yorum: ${totalReviews}
-
-⭐ Ortalama puan: ${averageRating}
-
-🏆 En yüksek puan verdikleri:
-
-${topMovies}`
-    );
-}
+    
 function closeProfile() {
 
     document
