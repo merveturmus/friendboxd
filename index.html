@@ -223,6 +223,9 @@
 
             const movieData =
               await getMovieData(movieName);
+            
+                 console.log(movieData);
+            
             const { data: existing } = await supabaseClient
                 .from('watchlist')
                 .select('*')
@@ -237,6 +240,19 @@
                 .from('watchlist')
                 .insert([{
     movie_name: movieName,
+
+    tmdb_id:
+        movieData?.id || null,
+
+    release_date:
+        movieData?.release_date || null,
+
+    user_id:
+        localStorage.getItem("sc_user_id"),
+
+    username:
+        localStorage.getItem("sc_name")
+}]);
     tmdb_id: movieData?.id || null,                
     user_id: localStorage.getItem("sc_user_id"),
     username: localStorage.getItem("sc_name")
@@ -276,6 +292,8 @@
                 title: data.results[0].title,
                 original_title:
                     data.results[0].original_title
+                release_date:
+                    data.results[0].release_date
             };
         }
 
@@ -447,6 +465,17 @@ ${escapeHTML(rev.content)}
                 }
             } else {
                 let { data: watchlist } = await supabaseClient.from('watchlist').select('*').order('created_at', { ascending: false });
+                watchlist.sort((a, b) => {
+
+    if (!a.release_date) return 1;
+
+    if (!b.release_date) return -1;
+
+    return (
+        new Date(a.release_date) -
+        new Date(b.release_date)
+    );
+});
                 container.innerHTML = `<div id="watch-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>`;
                 const grid = document.getElementById("watch-grid");
                 watchlist.forEach(item => {
@@ -454,9 +483,18 @@ ${escapeHTML(rev.content)}
                     grid.innerHTML += `
                         <div class="relative group aspect-[2/3] rounded-lg overflow-hidden border border-gray-800 bg-gray-900">
                             <img id="img-${cardId}" src="https://via.placeholder.com/300x450" class="w-full h-full object-cover">
-                            <div class="absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs px-2 py-1">
+                            <div class="absolute bottom-0 left-0 right-0 bg-black/80 text-white text-xs px-2 py-2">
+                              <div class="font-semibold">
+                                  ${escapeHTML(item.username || "Anonim")}
+                              </div>
 
-                              ${escapeHTML(item.username || "Anonim")}
+                              <div class="text-[10px] text-gray-300 mt-1">
+
+                               ${item.release_date
+                               ? `📅 ${item.release_date}`
+                               : "📅 Tarih bilinmiyor"}
+
+                             </div>
 
                             </div>
                             <button onclick="removeFromWatchlist(${item.id})" class="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full text-xs">🗑️</button>
