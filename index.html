@@ -195,7 +195,8 @@
                 content: document.getElementById("content").value, 
                 username: localStorage.getItem("sc_name"), 
                 user_id: localStorage.getItem("sc_user_id"),
-                is_spoiler: document.getElementById("isSpoiler").checked 
+                avatar_url: localStorage.getItem("sc_avatar"),
+                is_spoiler: document.getElementById("isSpoiler").checked
             }]);
 
             if (error) {
@@ -255,8 +256,11 @@
     user_id:
         localStorage.getItem("sc_user_id"),
 
-    username:
-        localStorage.getItem("sc_name")
+   username:
+    localStorage.getItem("sc_name"),
+
+avatar_url:
+    localStorage.getItem("sc_avatar")
 }]);
     
             if (error) {
