@@ -57,12 +57,13 @@
                     <div class="grid grid-cols-3 gap-4">
                         <div class="col-span-2">
                             <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Film Adı (İngilizce)</label>
-                            <input type="text" id="movieName" required placeholder="Örn: Inception" class="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                           <input type="text" id="movieName" required placeholder="Örn: Inception" class="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                           <div id="movieSuggestions" class="mt-2 space-y-2"></div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Puan (1-10)</label>
                             <input type="number" id="rating" required min="1" max="10" placeholder="10" class="w-full bg-[#1f2937] border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white text-center focus:outline-none focus:border-amber-500">
-                        </div>
+                    </div>
                     </div>
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">Film Hakkındaki Düşünceleriniz</label>
@@ -116,6 +117,8 @@
         let currentTab = 'archive';
         let currentSort = 'latest';
         const posterCache = {};
+        let selectedMovieData = null;
+        let movieSearchTimer = null;
 
         function escapeHTML(str) {
             return str
@@ -149,6 +152,16 @@
                 document.getElementById("userBadge").classList.remove("hidden");
                 document.getElementById("userBadge").classList.add("flex");
             }
+           document.getElementById("movieName").addEventListener("input", () => {
+    selectedMovieData = null;
+    clearTimeout(movieSearchTimer);
+
+    movieSearchTimer = setTimeout(() => {
+        showMovieSuggestions(
+            document.getElementById("movieName").value.trim()
+        );
+    }, 400);
+});
             document.getElementById("searchBox").addEventListener("input", loadData);
             loadData();
         });
@@ -179,17 +192,15 @@
                 alert("Yavaş ol şampiyon! 15 saniyede bir yorum yapabilirsin.");
                 return;
             }
-            const movieData =
-    await getMovieData(
-        document
-            .getElementById("movieName")
-            .value
-            .trim()
-    );
+            const typedMovieName = document.getElementById("movieName").value.trim();
+
+const movieData =
+    selectedMovieData ||
+    await getMovieData(typedMovieName);
             const { error } = await supabaseClient
             .from('entries')
             .insert([{ 
-                movie_name: document.getElementById("movieName").value.trim(), 
+                movie_name: movieData?.title || typedMovieName,
                 tmdb_id: movieData?.id || null,
                 rating: document.getElementById("rating").value, 
                 content: document.getElementById("content").value, 
@@ -216,6 +227,8 @@
     );
             localStorage.setItem("last_post_time", currentTime);
             document.getElementById("movieForm").reset();
+            selectedMovieData = null;
+            document.getElementById("movieSuggestions").innerHTML = "";
             loadData();
         });
 
@@ -276,7 +289,72 @@ avatar_url:
             localStorage.clear();
             location.reload();
         }
+        async function showMovieSuggestions(query) {
+    const box = document.getElementById("movieSuggestions");
 
+    if (!query || query.length < 2) {
+        box.innerHTML = "";
+        return;
+    }
+
+    const url =
+        `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=tr-TR`;
+
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!data.results || data.results.length === 0) {
+        box.innerHTML = `
+            <div class="text-xs text-gray-500">
+                Film bulunamadı. İngilizce adıyla tekrar dene.
+            </div>
+        `;
+        return;
+    }
+
+    box.innerHTML = data.results.slice(0, 5).map(movie => {
+        const poster = movie.poster_path
+            ? `https://image.tmdb.org/t/p/w92${movie.poster_path}`
+            : "https://via.placeholder.com/60x90";
+
+        const year = movie.release_date
+            ? movie.release_date.slice(0, 4)
+            : "Tarih yok";
+
+        return `
+            <button
+                type="button"
+                onclick='selectMovie(${JSON.stringify(movie).replace(/'/g, "&apos;")})'
+                class="w-full flex gap-3 items-center bg-[#1f2937] hover:bg-[#263244] border border-gray-700 rounded-xl p-2 text-left cursor-pointer">
+
+                <img src="${poster}" class="w-10 h-14 object-cover rounded">
+
+                <div>
+                    <div class="text-sm font-bold text-white">
+                        ${escapeHTML(movie.title)}
+                    </div>
+
+                    <div class="text-xs text-gray-400">
+                        ${escapeHTML(movie.original_title || "")} · ${year}
+                    </div>
+                </div>
+            </button>
+        `;
+    }).join("");
+}
+
+function selectMovie(movie) {
+    selectedMovieData = {
+        id: movie.id,
+        title: movie.title,
+        original_title: movie.original_title,
+        release_date: movie.release_date
+    };
+
+    document.getElementById("movieName").value = movie.title;
+    document.getElementById("movieSuggestions").innerHTML = "";
+}
+        
         async function getMovieData(movieName) {
 
     try {
