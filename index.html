@@ -487,97 +487,82 @@ function selectMovie(movie) {
                 for (let movie of movieArray) {
                     const cardId = `movie-${btoa(encodeURIComponent(movie.name)).replace(/=/g, '')}`;
                     container.innerHTML += `
-                    <div id="${cardId}" class="bg-[#111827] border border-gray-800 rounded-2xl p-5 flex flex-col md:flex-row gap-5 shadow-xl items-start">
-                        <div class="w-full md:w-32 flex-shrink-0">
+<div id="${cardId}" class="bg-[#111827] border border-gray-800 rounded-2xl p-5 flex flex-col md:flex-row gap-5 shadow-xl items-start">
 
-                        <div class="aspect-[2/3]">
-                         <img
-                         id="img-${cardId}"
-                         src="https://via.placeholder.com/150x225"
-                         class="w-full h-full object-cover rounded-xl bg-gray-800">
+    <div class="w-full md:w-32 flex-shrink-0">
+        <div class="aspect-[2/3]">
+            <img
+                id="img-${cardId}"
+                src="https://via.placeholder.com/150x225"
+                class="w-full h-full object-cover rounded-xl bg-gray-800">
+        </div>
+
+        <div class="text-center mt-2 text-sm font-bold text-amber-400">
+            ⭐ ${movie.averageRating}/10
+        </div>
+    </div>
+
+    <div class="flex-1 w-full">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-extrabold text-white">${movie.name}</h3>
+
+            <span class="text-xs font-bold bg-amber-600/20 text-amber-500 px-3 py-1 rounded-full">
+                👁️ ${movie.reviews.length} izleyici
+            </span>
+        </div>
+
+        <div class="space-y-3">
+            ${movie.reviews.map(rev => `
+                <div class="bg-[#192231]/40 border border-gray-800/40 rounded-xl p-3">
+
+                    <div class="flex justify-between items-start text-xs mb-2">
+                        <div class="flex gap-2 items-center">
+                            <img
+                                src="${rev.avatar_url || 'https://ui-avatars.com/api/?name=User&background=111827&color=fff'}"
+                                class="w-6 h-6 rounded-full object-cover border border-gray-700">
+
+                            <button
+                                onclick="showProfile('${rev.user_id}')"
+                                class="font-bold text-amber-400 hover:underline cursor-pointer">
+                                ${escapeHTML(rev.username)}
+                            </button>
+
+                            <span class="font-black text-gray-300">
+                                ⭐ ${rev.rating}
+                            </span>
                         </div>
 
-                        <div class="text-center mt-2 text-sm font-bold text-amber-400">
-                         ⭐ ${movie.averageRating}
+                        <span class="text-[10px] text-gray-500 shrink-0 ml-3">
+                            ${formatDate(rev.created_at)}
+                        </span>
+                    </div>
+
+                    ${rev.user_id === localStorage.getItem("sc_user_id") ? `
+                        <div class="flex gap-2 mb-2">
+                            <button
+                                onclick="editEntry(${rev.id}, \`${rev.content.replace(/`/g, "\\`")}\`)"
+                                class="text-blue-400 hover:text-blue-300 text-xs cursor-pointer">
+                                ✏️
+                            </button>
+
+                            <button
+                                onclick="deleteEntry(${rev.id})"
+                                class="text-red-400 hover:text-red-300 text-xs cursor-pointer">
+                                🗑️
+                            </button>
                         </div>
+                    ` : ""}
 
-                        </div>
-                        <div class="flex-1 w-full">
-                            <div class="flex justify-between items-center mb-2">
-                                <div>
-                                 <h3 class="text-xl font-extrabold text-white">${movie.name}</h3>
-                                
-                                <span class="text-xs font-bold bg-amber-600/20 text-amber-500 px-3 py-1 rounded-full">👁️ ${movie.reviews.length} izleyici</span>
-                            </div>
-                            <div class="space-y-3">${movie.reviews.map(rev => `
-                                <div class="bg-[#192231]/40 border border-gray-800/40 rounded-xl p-3">
-                                   <div class="flex justify-between items-center text-xs mb-1">
-
-                                     <div class="flex gap-2 items-start">
-
-<img
-src="${rev.avatar_url || 'https://ui-avatars.com/api/?name=User&background=111827&color=fff'}"
-class="w-6 h-6 rounded-full object-cover border border-gray-700">
-
-<div>
-
-<button
-onclick="showProfile('${rev.user_id}')"
-class="font-bold text-amber-400 hover:underline cursor-pointer">
-
-    ${escapeHTML(rev.username)}
-
-</button>
-
-</div>
-
-                                    
-
-                                      <div class="flex items-center gap-2">
-                                      <span class="font-black text-gray-300">
-                                      ⭐ ${rev.rating}
-                                      </span>
-                                   </div>
-                                   <div class="text-[10px] text-gray-500">
-                                   ${formatDate(rev.created_at)}
-                                   </div>
-
-                                   </div>
-
-                                   ${rev.user_id === localStorage.getItem("sc_user_id") ? `
-
-                                     <div class="flex gap-2">
-
-    <button
-    onclick="editEntry(${rev.id}, \`${rev.content.replace(/`/g, "\\`")}\`)"
-    class="text-blue-400 hover:text-blue-300 text-xs cursor-pointer">
-
-        ✏️
-
-    </button>
-
-    <button
-    onclick="deleteEntry(${rev.id})"
-    class="text-red-400 hover:text-red-300 text-xs cursor-pointer">
-
-        🗑️
-
-    </button>
-
-</div>
-
-                                  ` : ""}
-
-                                  </div>
-                                    <p 
-class="${rev.is_spoiler ? 'spoiler-text' : ''}" 
-onclick="this.classList.toggle('spoiler-unblurred')">
-${escapeHTML(rev.content)}
-</p>
-                                </div>`).join('')}
-                            </div>
-                        </div>
-                    </div>`;
+                    <p
+                        class="${rev.is_spoiler ? 'spoiler-text' : ''}"
+                        onclick="this.classList.toggle('spoiler-unblurred')">
+                        ${escapeHTML(rev.content)}
+                    </p>
+                </div>
+            `).join('')}
+        </div>
+    </div>
+</div>`;
                     getPoster(movie.name).then(url => { if(url) document.getElementById(`img-${cardId}`).src = url; });
                 }
             } else {
