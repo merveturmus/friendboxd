@@ -304,9 +304,10 @@ avatar_url:
 }]);
     
             if (error) {
-                alert("Film eklenemedi.");
-                return;
-            }
+    console.error("Watchlist insert error:", error);
+    alert("Film eklenemedi: " + error.message);
+    return;
+}
 
             document.getElementById("watchlistForm").reset();
             selectedWatchlistMovieData = null;
